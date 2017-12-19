@@ -5,6 +5,8 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Windows.Threading;
+// jkb add this one
+using System.Windows.Input;
 
 namespace LogicCircuit {
 	public class CircuitRunner {
@@ -66,8 +68,9 @@ namespace LogicCircuit {
 			this.evaluationThread.IsBackground = true;
 			this.evaluationThread.Name = "EvaluationThread";
 			this.evaluationThread.Priority = ThreadPriority.Normal;
+            this.evaluationThread.SetApartmentState(ApartmentState.STA); // jkb: needed by the UI
 
-			this.evaluationThread.Start();
+            this.evaluationThread.Start();
 		}
 
 		public void Stop() {
@@ -216,6 +219,22 @@ namespace LogicCircuit {
 					// On single CPU machine when circuit is running on max speed lets yield for UI thread to refresh displays.
 					Thread.Yield();
 				}
+
+
+                // jkb
+                Key key = KeyPressed();
+                if (key != Key.None)
+                {
+                    // If a key is pressed, and keyboard simulation is enabled, update the memory address
+                    // assigned to the keyboard with the new value. 
+                    if (FunctionRam.keyboardRAM != null) FunctionRam.keyboardRAM.WriteKeyValue(key);
+                }
+                else
+                {
+                    if (FunctionRam.keyboardRAM != null) FunctionRam.keyboardRAM.WriteKeyValue(Key.None);
+                }
+                // jkb end
+
 			}
 			this.Editor.Mainframe.ErrorMessage(Properties.Resources.Oscillation);
 		}
@@ -260,26 +279,53 @@ namespace LogicCircuit {
 			}
 		}
 
-		[SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
-		private void RefreshUI() {
-			try {
-				if(this.running) {
-					this.updatingUI = true;
-					Thread.MemoryBarrier();
-					this.VisibleMap.Redraw(false);
-					if(this.actualFrequency != this.lastActualFrequency) {
-						this.lastActualFrequency = this.actualFrequency;
-						this.Editor.ActualFrequency = this.actualFrequency;
-					}
-				}
-			} catch(ThreadAbortException) {
-			} catch(Exception exception) {
-				this.Editor.Mainframe.ReportException(exception);
-			} finally {
-				this.refreshing = false;
-				this.updatingUI = false;
-				Thread.MemoryBarrier();
-			}
-		}
-	}
+        [SuppressMessage("Microsoft.Design", "CA1031:DoNotCatchGeneralExceptionTypes")]
+        private void RefreshUI()
+        {
+            try
+            {
+                if (this.running)
+                {
+                    this.updatingUI = true;
+                    Thread.MemoryBarrier();
+                    this.VisibleMap.Redraw(false);
+                    if (this.actualFrequency != this.lastActualFrequency)
+                    {
+                        this.lastActualFrequency = this.actualFrequency;
+                        this.Editor.ActualFrequency = this.actualFrequency;
+                    }
+                }
+            }
+            catch (ThreadAbortException)
+            {
+            }
+            catch (Exception exception)
+            {
+                this.Editor.Mainframe.ReportException(exception);
+            }
+            finally
+            {
+                this.refreshing = false;
+                this.updatingUI = false;
+                Thread.MemoryBarrier();
+            }
+        }
+// jkb 
+        private static Key KeyPressed()
+        {
+            var allPossibleKeys = Enum.GetValues(typeof(Key));
+            Key result = Key.None;
+            foreach (var currentKey in allPossibleKeys)
+            {
+                Key key = (Key)currentKey;
+                if ((key != Key.None) && (Keyboard.IsKeyDown(key)))
+                {
+                    result = key; break;
+                }
+            }
+            return result;
+        }
+        // end jkb code
+
+    }
 }

@@ -9,8 +9,11 @@ namespace LogicCircuit {
 		private int write;
 		private State writeOn;
 		private State oldWriteState = State.Off;
-		private byte[] data;
-		public Memory Memory { get; private set; }
+
+        //[SuppressMessage("Microsoft.Design", "CA1051:Do not declare visible instance fields", MessageId = "data")]
+        protected byte[] data; // JKB: was private, had to make this change for keyboard sim write
+
+        public Memory Memory { get; private set; }
 
 		protected FunctionMemory(
 			CircuitState circuitState, int[] address, int[] inputData, int[] outputData, int write, Memory memory

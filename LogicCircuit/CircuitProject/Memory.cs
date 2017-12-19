@@ -230,9 +230,10 @@ namespace LogicCircuit {
 		}
 
 		public Memory Create(bool writable, int addressBitWidth, int dataBitWidth) {
-			Memory memory = this.CreateItem(Guid.NewGuid(), writable, MemoryData.WriteOn1Field.Field.DefaultValue, MemoryData.OnStartField.Field.DefaultValue,
-				addressBitWidth, dataBitWidth, MemoryData.DataField.Field.DefaultValue, MemoryData.NoteField.Field.DefaultValue
-			);
+            Memory memory = this.CreateItem(Guid.NewGuid(), writable, MemoryData.WriteOn1Field.Field.DefaultValue,
+                MemoryData.OnStartField.Field.DefaultValue, /* jkb add*/ MemoryData.MapKeyboardField.Field.DefaultValue, /* jkb */
+                addressBitWidth, dataBitWidth, MemoryData.DataField.Field.DefaultValue, MemoryData.NoteField.Field.DefaultValue
+            );
 			this.CreatePins(memory);
 			return memory;
 		}

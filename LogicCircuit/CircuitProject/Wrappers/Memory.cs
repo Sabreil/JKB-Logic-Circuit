@@ -16,6 +16,7 @@ namespace LogicCircuit {
 		public bool Writable;
 		public bool WriteOn1;
 		public MemoryOnStart OnStart;
+		public MemoryMapKeyboard MapKeyboard;
 		private int fieldAddressBitWidth;
 		public int AddressBitWidth {
 			get { return this.fieldAddressBitWidth; }
@@ -167,6 +168,41 @@ namespace LogicCircuit {
 			}
 			void IFieldSerializer<MemoryData>.SetTextValue(ref MemoryData data, string text) {
 				data.OnStart = EnumHelper.Parse<MemoryOnStart>(text, this.DefaultValue);
+			}
+		}
+
+		// Accessor of the MapKeyboard field
+		public sealed class MapKeyboardField : IField<MemoryData, MemoryMapKeyboard>, IFieldSerializer<MemoryData> {
+			public static readonly MapKeyboardField Field = new MapKeyboardField();
+			private MapKeyboardField() {}
+			public string Name { get { return "MapKeyboard"; } }
+			public int Order { get; set; }
+			public MemoryMapKeyboard DefaultValue { get { return MemoryMapKeyboard.Disabled; } }
+			public MemoryMapKeyboard GetValue(ref MemoryData record) {
+				return record.MapKeyboard;
+			}
+			public void SetValue(ref MemoryData record, MemoryMapKeyboard value) {
+				record.MapKeyboard = value;
+			}
+			public int Compare(ref MemoryData l, ref MemoryData r) {
+				return l.MapKeyboard.CompareTo(r.MapKeyboard);
+			}
+			public int Compare(MemoryMapKeyboard l, MemoryMapKeyboard r) {
+				return l.CompareTo(r);
+			}
+
+			// Implementation of interface IFieldSerializer<MemoryData>
+			bool IFieldSerializer<MemoryData>.NeedToSave(ref MemoryData data) {
+				return this.Compare(data.MapKeyboard, this.DefaultValue) != 0;
+			}
+			string IFieldSerializer<MemoryData>.GetTextValue(ref MemoryData data) {
+				return string.Format(CultureInfo.InvariantCulture, "{0}", data.MapKeyboard);
+			}
+			void IFieldSerializer<MemoryData>.SetDefault(ref MemoryData data) {
+				data.MapKeyboard = this.DefaultValue;
+			}
+			void IFieldSerializer<MemoryData>.SetTextValue(ref MemoryData data, string text) {
+				data.MapKeyboard = EnumHelper.Parse<MemoryMapKeyboard>(text, this.DefaultValue);
 			}
 		}
 
@@ -340,6 +376,7 @@ namespace LogicCircuit {
 			WritableField.Field,
 			WriteOn1Field.Field,
 			OnStartField.Field,
+			MapKeyboardField.Field,
 			AddressBitWidthField.Field,
 			DataBitWidthField.Field,
 			DataField.Field,
@@ -409,6 +446,12 @@ namespace LogicCircuit {
 			set { this.Table.SetField(this.MemoryRowId, MemoryData.OnStartField.Field, value); }
 		}
 
+		// Gets or sets value of the MapKeyboard field.
+		public MemoryMapKeyboard MapKeyboard {
+			get { return this.Table.GetField(this.MemoryRowId, MemoryData.MapKeyboardField.Field); }
+			set { this.Table.SetField(this.MemoryRowId, MemoryData.MapKeyboardField.Field, value); }
+		}
+
 		// Gets or sets value of the AddressBitWidth field.
 		public int AddressBitWidth {
 			get { return this.Table.GetField(this.MemoryRowId, MemoryData.AddressBitWidthField.Field); }
@@ -450,6 +493,9 @@ namespace LogicCircuit {
 				}
 				if(MemoryData.OnStartField.Field.Compare(ref oldData, ref newData) != 0) {
 					this.NotifyPropertyChanged("OnStart");
+				}
+				if(MemoryData.MapKeyboardField.Field.Compare(ref oldData, ref newData) != 0) {
+					this.NotifyPropertyChanged("MapKeyboard");
 				}
 				if(MemoryData.AddressBitWidthField.Field.Compare(ref oldData, ref newData) != 0) {
 					this.NotifyPropertyChanged("AddressBitWidth");
@@ -549,6 +595,7 @@ namespace LogicCircuit {
 			bool Writable,
 			bool WriteOn1,
 			MemoryOnStart OnStart,
+			MemoryMapKeyboard MapKeyboard,
 			int AddressBitWidth,
 			int DataBitWidth,
 			string Data,
@@ -567,6 +614,7 @@ namespace LogicCircuit {
 				Writable = Writable,
 				WriteOn1 = WriteOn1,
 				OnStart = OnStart,
+				MapKeyboard = MapKeyboard,
 				AddressBitWidth = AddressBitWidth,
 				DataBitWidth = DataBitWidth,
 				Data = Data,
